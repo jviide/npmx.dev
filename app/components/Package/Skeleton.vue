@@ -13,6 +13,8 @@
         <SkeletonBlock class="w-9 md:w-36 h-9 rounded" />
         <!-- Likes button placeholder -->
         <SkeletonBlock class="w-14 h-9 rounded" />
+        <!-- Fund link placeholder -->
+        <SkeletonBlock class="w-22 h-9 rounded self-baseline" />
       </div>
     </div>
   </header>
