@@ -106,7 +106,7 @@ export async function renderMarkdown(text: string, symbolLookup: SymbolLookup): 
   // Pattern handles:
   // - Optional whitespace before/after language identifier
   // - \r\n, \n, or \r line endings
-  const split = text.split(/```[ \t]*(\w*)[ \t]*(?:\r\n|\r|\n)([\s\S]*?)(?:\r\n|\r|\n)?```/g)
+  const split = text.split(/```([ \t]*\w+)?[ \t]*(?:\r\n|\r|\n)([\s\S]*?)(?:\r\n|\r|\n)?```/g)
 
   // The split array looks like [content, lang, code, content, lang, code, ..., content],
   // so iterate through it in chunks of [content, lang?, code?].
@@ -131,9 +131,9 @@ export async function renderMarkdown(text: string, symbolLookup: SymbolLookup): 
 
     // Process the fenced code block, if any.
     if (i + 2 < split.length) {
-      const lang = split[i + 1]!;
-      const code = split[i + 2]!;
-      result.push(await highlightCodeBlock(code, lang || "text"))
+      const lang = split[i + 1] ?? "";
+      const code = split[i + 2] ?? "";
+      result.push(await highlightCodeBlock(code, lang.trim() || "text"))
     }
   }
 
