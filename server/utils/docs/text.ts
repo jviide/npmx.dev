@@ -100,42 +100,42 @@ export function parseJsDocLinks(text: string, symbolLookup: SymbolLookup): strin
  * @internal Exported for testing
  */
 export async function renderMarkdown(text: string, symbolLookup: SymbolLookup): Promise<string> {
-  // Extract fenced code blocks FIRST (before any HTML escaping)
+  const result: string[] = [];
+
+  // Separate the fenced code blocks from the rest of the content.
   // Pattern handles:
   // - Optional whitespace before/after language identifier
   // - \r\n, \n, or \r line endings
-  const codeBlockData: Array<{ lang: string; code: string }> = []
-  let result = text.replace(
-    /```[ \t]*(\w*)[ \t]*(?:\r\n|\r|\n)([\s\S]*?)(?:\r\n|\r|\n)?```/g,
-    (_, lang, code) => {
-      const index = codeBlockData.length
-      codeBlockData.push({ lang: lang || 'text', code: code.trim() })
-      return `__CODE_BLOCK_${index}__`
-    },
-  )
+  const split = text.split(/```[ \t]*(\w*)[ \t]*(?:\r\n|\r|\n)([\s\S]*?)(?:\r\n|\r|\n)?```/g)
 
-  // Now process the rest (JSDoc links, HTML escaping, etc.)
-  result = parseJsDocLinks(result, symbolLookup)
+  // The split array looks like [content, lang, code, content, lang, code, ..., content],
+  // so iterate through it in chunks of [content, lang?, code?].
+  for (let i = 0; i < split.length; i += 3) {
+    // Process the content before the fenced code block (JSDoc links, HTML escaping, etc.)
+    let content = parseJsDocLinks(split[i]!, symbolLookup)
 
-  // Markdown links - i.e. [text](url)
-  result = result.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noreferrer" class="docs-link">$1</a>',
-  )
+    // Markdown links - i.e. [text](url)
+    content = content.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noreferrer" class="docs-link">$1</a>',
+    )
 
-  // Handle inline code (single backticks) - won't interfere with fenced blocks
-  result = result
-    .replace(/`([^`]+)`/g, '<code class="docs-inline-code">$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n{2,}/g, '<br><br>')
-    .replace(/\n/g, '<br>')
+    // Handle inline code (single backticks) - won't interfere with fenced blocks
+    content = content
+      .replace(/`([^`]+)`/g, '<code class="docs-inline-code">$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>')
 
-  // Highlight and restore code blocks
-  for (let i = 0; i < codeBlockData.length; i++) {
-    const { lang, code } = codeBlockData[i]!
-    const highlighted = await highlightCodeBlock(code, lang)
-    result = result.replace(`__CODE_BLOCK_${i}__`, highlighted)
+    result.push(content)
+
+    // Process the fenced code block, if any.
+    if (i + 2 < split.length) {
+      const lang = split[i + 1]!;
+      const code = split[i + 2]!;
+      result.push(await highlightCodeBlock(code, lang || "text"))
+    }
   }
 
-  return result
+  return result.join('')
 }
