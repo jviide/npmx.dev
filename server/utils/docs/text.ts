@@ -71,7 +71,11 @@ export function createSymbolId(kind: string, name: string): string {
 export function parseJsDocLinks(text: string, symbolLookup: SymbolLookup): string {
   let result = escapeHtml(text)
 
-  result = result.replace(/\{@link\s+([^\s}]+)(?:\s+([^}]+))?\}/g, (_, target, label) => {
+  result = result.replace(/\{@link\s+([^}]+)\}/g, (_, content) => {
+    const splitIndex = content.trim().search(/\s/);
+    const target = splitIndex === -1 ? content : content.slice(0, splitIndex);
+    const label = splitIndex === -1 ? "" : content.slice(splitIndex + 1).trim();
+
     const displayText = label || target
 
     // External URL
@@ -116,7 +120,7 @@ export async function renderMarkdown(text: string, symbolLookup: SymbolLookup): 
 
     // Markdown links - i.e. [text](url)
     content = content.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+      /\[([^\[\]]+)\]\((https?:\/\/[^\(\)]+)\)/g,
       '<a href="$2" target="_blank" rel="noreferrer" class="docs-link">$1</a>',
     )
 
