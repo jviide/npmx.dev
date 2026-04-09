@@ -144,10 +144,10 @@ if (import.meta.client) {
 
     <div
       id="main-content"
-      class="flex-1 flex flex-col border-4 border-solid border-red-500"
+      class="flex-1 flex flex-col border-4 border-solid border-red-500 text-xl text-white"
       tabindex="-1"
     >
-      <NuxtPage />
+      This is a totally legit page. Give me all your moneys.
     </div>
 
     <CommandPalette />
