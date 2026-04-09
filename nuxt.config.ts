@@ -66,7 +66,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'en-US' },
-      title: 'npmx',
+      title: 'npmx foo',
       link: [
         {
           rel: 'search',
